@@ -1,7 +1,7 @@
 #' @title 3D Image Hessian
 #' @description This function returns the eigenvalues of the hessian matrices for a 3D array or NIfTI volume.
-#' @param image a 3D array or image of class \code{\link{nifti}}
-#' @param mask an array or \code{\link{nifti}} mask of voxels for which vesselness will be calculated,
+#' @param image a 3D array or image of class \code{nifti}
+#' @param mask an array or \code{nifti} mask of voxels for which vesselness will be calculated,
 #' with more selective masking improving speed significantly.
 #' Note that mask should be in the same space as the image volume
 #' @param radius an integer specifying radius of the neighborhood (in voxels) for which the hessian should be calculated

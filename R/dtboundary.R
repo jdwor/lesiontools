@@ -1,8 +1,9 @@
 #' @title Distance to Mask Boundary
 #' @description This function finds the distance of each voxel to the nearest boundary in a given mask.
-#' @param mask a 3D array or image of class \code{\link{nifti}}, containing a binary mask where 1 represents structure.
+#' @param mask a 3D array or image of class \code{nifti}, containing a binary mask where 1 represents structure.
 #'
 #' @return A new image in which voxels have been assigned their distance to the nearest boundary.
+#' @examples \dontrun{
 #' library(neurobase)
 #' lesion.mask <- readnii('path/to/mask')
 #' dtb <- dtboundary(mask = lesion.mask) }

@@ -1,12 +1,12 @@
-#' @title Distinct Lesion Centers
-#' @description This function finds the centers of distinct lesions based on a lesion probability map. The method is described in Dworkin (2018).
-#' @param epi a T2*-EPI volume of class \code{\link{nifti}}.
-#' @param t1 a T1-weighted volume of class \code{\link{nifti}}.
-#' @param flair a T2-FLAIR volume of class \code{\link{nifti}}.
-#' @param probmap an image of class \code{\link{nifti}}, containing the probability that each voxel
+#' @title Central Vein Detection
+#' @description This function obtains the probability that each lesion in a subject's deep white-matter has a central vein.
+#' @param epi a T2*-EPI volume of class \code{nifti}.
+#' @param t1 a T1-weighted volume of class \code{nifti}.
+#' @param flair a T2-FLAIR volume of class \code{nifti}.
+#' @param probmap an image of class \code{nifti}, containing the probability that each voxel
 #' is a lesion voxel.
-#' If a probability map is not included, the MIMoSA model will be applied (Valcarcel, 2017).
-#' @param binmap a \code{\link{nifti}} mask in which voxels are classified as either lesion voxels
+#' If a probability map is not included, the MIMoSA model will be applied (Valcarcel et al., 2017).
+#' @param binmap a \code{nifti} mask in which voxels are classified as either lesion voxels
 #' or not lesion voxels.
 #' Note that mask should be in the same space as the probmap volume.
 #' @param parallel is a logical value that indicates whether the user's computer
@@ -19,8 +19,8 @@
 #'
 #' @importFrom ANTsRCore labelClusters
 #' @importFrom neurobase niftiarr
-#' @importFrom mimosa mimosa_data mimosa_model_No_PD_T2
-#' @importFrom extrantsr ants2oro oro2ants bias_correct registration
+#' @import mimosa
+#' @importFrom extrantsr ants2oro oro2ants bias_correct registration fslbet_robust
 #' @importFrom stats predict
 #' @importFrom fslr fslsmooth fast fslerode
 #' @return A list containing candidate.lesions (a nifti file with labeled lesions evaluated for CVS),
@@ -34,7 +34,6 @@
 #' cvs <- centralveins(epi = epi, t1 = t1, flair = flair
 #'                          parallel = TRUE, cores = 4, c3d = T) }
 #' @export
-#' @references Alessandra Valcarcel (2017). mimosa: 'MIMoSA': A Method for Inter-Modal Segmentation Analysis. R package version 0.5.3. https://github.com/avalcarcel9/mimosa
 centralveins=function(epi,t1,flair,probmap=NULL,binmap=NULL,parallel=F,
                       cores=2,skullstrip=F,biascorrect=F,c3d=F){
   if(biascorrect==F){
@@ -74,11 +73,12 @@ centralveins=function(epi,t1,flair,probmap=NULL,binmap=NULL,parallel=F,
     mimosa_cm = mimosa_data$top_voxels
     rm(mimosa_data)
 
-    predictions = predict(mimosa_model_No_PD_T2,newdata = mimosa_df,type = 'response')
-    probmap = niftiarr(brain_mask, 0)
+    predictions = predict(mimosa::mimosa_model_No_PD_T2,
+                          newdata = mimosa_df,type = 'response')
+    probmap = niftiarr(mask, 0)
     probmap[mimosa_cm == 1] = predictions
-    probmap = fslsmooth(probability_map,sigma = 1.25,
-                        mask = mask,retimg = TRUE,smooth_mask = TRUE)
+    probmap = fslsmooth(probmap,sigma = 1.25,mask = mask,
+                        retimg = TRUE,smooth_mask = TRUE)
   }
 
   les=lesioncenters(probmap,probmap>0.3,parallel=parallel,cores=cores)
@@ -107,7 +107,7 @@ centralveins=function(epi,t1,flair,probmap=NULL,binmap=NULL,parallel=F,
   maxles=max(as.vector(lables))
   for(j in 1:maxles){
     frangsub=frangi[lables==j]
-    centsub=dtbmap[lables==j]
+    centsub=dtb[lables==j]
     coords=which(lables==j,arr.ind=T)
     prod=frangsub*centsub
     score=sum(prod)
@@ -124,7 +124,7 @@ centralveins=function(epi,t1,flair,probmap=NULL,binmap=NULL,parallel=F,
     avprob=c(avprob,lesprob)
     probles[lables==j]<-lesprob
 
-    print(paste0("Done with ",i," lesion ",j," of ",maxles))
+    print(paste0("Done with lesion ",j," of ",maxles))
   }
 
   return(list(candidate.lesions=lables,cvs.probmap=probles,cvs.biomarker=mean(avprob)))

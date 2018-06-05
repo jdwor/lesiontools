@@ -1,7 +1,7 @@
 #' @title Frangi Vesselness Filter
-#' @description This function returns a vesselness map for a 3D array or NIfTI volume. This vesselness measure is based on the method described by Frangi (1998).
-#' @param image a 3D array or image of class \code{\link{nifti}}
-#' @param mask an array or \code{\link{nifti}} mask of voxels for which vesselness will be calculated,
+#' @description This function returns a vesselness map for a 3D array or NIfTI volume. This vesselness measure is based on the method described in Frangi et al., (1998).
+#' @param image a 3D array or image of class \code{nifti}
+#' @param mask an array or \code{nifti} mask of voxels for which vesselness will be calculated,
 #' with more selective masking improving speed significantly.
 #' Note that mask should be in the same space as the image volume
 #' @param radius an integer specifying radius of the neighborhood (in voxels) for which the vesselness should be calculated.
@@ -15,6 +15,7 @@
 #' @param min.scale if c3d==T, the minimum scale in mm of the structures being found.
 #' @param max.scale if c3d==T, the maximum scale in mm of the structures being found.
 #'
+#' @importFrom neurobase readnii writenii
 #' @return A 3D volume of the Frangi vesselness scores.
 #' @examples \dontrun{
 #' library(neurobase)
@@ -79,9 +80,9 @@ frangi=function(image, mask, radius = 1, color = "dark",
   }else{
     tempinv=tempfile(pattern="file", tmpdir=tempdir(), fileext=".nii.gz")
     if(color=="dark"){
-      writenii(-1*epi,tempinv)
+      writenii(-1*image,tempinv)
     }else{
-      writenii(epi,tempinv)
+      writenii(image,tempinv)
     }
     tempvein=tempfile(pattern="file", tmpdir=tempdir(), fileext=".nii.gz")
     system(paste0("c3d ",tempinv," -hessobj 1 ",min.scale," ",max.scale," -oo ",tempvein))

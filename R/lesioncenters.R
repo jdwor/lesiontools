@@ -1,7 +1,7 @@
 #' @title Distinct Lesion Centers
-#' @description This function finds the centers of distinct lesions based on a lesion probability map. The method is described in Dworkin (2018).
-#' @param probmap a 3D array or image of class \code{\link{nifti}}, containing the probability that each voxel is a lesion voxel
-#' @param bindmap a 3D array or \code{\link{nifti}} mask in which voxels are classified as either lesion voxels or not lesion voxels.
+#' @description This function finds the centers of distinct lesions based on a lesion probability map. The method is described in Dworkin et al., (2018).
+#' @param probmap a 3D array or image of class \code{nifti}, containing the probability that each voxel is a lesion voxel
+#' @param binmap a 3D array or \code{nifti} mask in which voxels are classified as either lesion voxels or not lesion voxels.
 #' Note that mask should be in the same space as the probmap volume
 #' @param minCenterSize an integer value representing the minimum number of connected voxels that can be considered a lesion center
 #' @param radius an integer specifying radius of the neighborhood (in voxels) for which the hessian should be calculated.
@@ -11,7 +11,7 @@
 #' the function should be run on
 #'
 #' @importFrom ANTsRCore labelClusters
-#' @importFRom extrantsr ants2oro oro2ants
+#' @importFrom extrantsr ants2oro oro2ants
 #' @return A list containing lesioncenters (a nifti file with labeled lesion centers) and lesioncount (an integer value representing the number of distinct lesions)
 #' @examples \dontrun{
 #' library(neurobase)

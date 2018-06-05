@@ -1,14 +1,15 @@
 #' @title Register Label Image Based on Full Image
 #' @description This function registers a full image to a fixed image, then applies the registration to a label or binary image in the same space as the full image.
-#' @param fullimage an image of class \code{\link{nifti}}, in the same space as the label image, which will be registered to the fixed image.
-#' @param labelimage an image of class \code{\link{nifti}} with limited structural information, in the same space as the full image, to which the full image registration will be applied.
-#' @param fixedimage an image of class \code{\link{nifti}}, to which the other images will be registered.
+#' @param fullimage an image of class \code{nifti}, in the same space as the label image, which will be registered to the fixed image.
+#' @param labelimage an image of class \code{nifti} with limited structural information, in the same space as the full image, to which the full image registration will be applied.
+#' @param fixedimage an image of class \code{nifti}, to which the other images will be registered.
 #' @param typeofTransform the type of registration desired; this value is passed onto the registration function from extrantsr.
 #' @param interpolator the type of interpolation desired; this value is passed onto the antsApplyTransforms function from ANTsRCore
 #'
 #' @importFrom ANTsRCore antsApplyTransforms
-#' @importFRom extrantsr ants2oro oro2ants registration
+#' @importFrom extrantsr ants2oro oro2ants registration
 #' @return A list containing image_reg (the registered version of fullimage) and label_reg (the registered version of labelimage).
+#' @examples \dontrun{
 #' library(neurobase)
 #' library(fslr)
 #' flair <- readnii('path/to/flair')
