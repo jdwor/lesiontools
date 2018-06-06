@@ -13,8 +13,8 @@
 #' is Linux or Unix (i.e. macOS), and should run the code in parallel.
 #' @param cores if parallel = TRUE, cores is an integer value that indicates how many cores
 #' the function should be run on.
-#' @param skullstrip a logical value reflecting whether or not the images have already been skull-stripped.
-#' @param biascorrect a logical value reflecting whether or not the images have already been bias-corrected.
+#' @param skullstripped a logical value reflecting whether or not the images have already been skull-stripped.
+#' @param biascorrected a logical value reflecting whether or not the images have already been bias-corrected.
 #' @param c3d a logical value reflecting whether or not the Convert3D imaging toolbox is installed.
 #'
 #' @importFrom ANTsRCore labelClusters
@@ -35,8 +35,8 @@
 #'                          parallel = TRUE, cores = 4, c3d = T) }
 #' @export
 centralveins=function(epi,t1,flair,probmap=NULL,binmap=NULL,parallel=F,
-                      cores=2,skullstrip=F,biascorrect=F,c3d=F){
-  if(biascorrect==F){
+                      cores=2,skullstripped=F,biascorrected=F,c3d=F){
+  if(biascorrected==F){
     epi=bias_correct(epi,correction="N4",reorient=F)
     t1=bias_correct(t1,correction="N4",reorient=F)
     flair=bias_correct(flair,correction="N4",reorient=F)
@@ -45,7 +45,7 @@ centralveins=function(epi,t1,flair,probmap=NULL,binmap=NULL,parallel=F,
                      remove.warp=FALSE,outprefix="fun")
   flair=flair$outfile
 
-  if(skullstrip==F){
+  if(skullstripped==F){
     t1_ss=fslbet_robust(t1,correct=F)
     epi_ss=fslbet_robust(epi,correct=F)
     flair_ss=flair
