@@ -1,3 +1,4 @@
+^\./appveyor\.yml\.bak$
 ^appveyor\.yml$
 ^\./\.travis\.yml\.bak$
 ^\.travis\.yml$

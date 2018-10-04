@@ -17,14 +17,12 @@ URL: https://github.com/jdwor/lesiontools
 RoxygenNote: 6.0.1
 Imports: pbmcapply, pbapply, parallel, ANTsRCore, extrantsr, neurobase,
         mimosa, stats, fslr, oro.nifti
-Suggests: 
-    covr,
-    testthat
-Remotes:  
-    neuroconductor-devel/ANTsRCore@f7fb598fed44aed83b3efe9ef260d77553a6e9b3,
-    neuroconductor-devel/oro.nifti@d39171057b2868b56d63d3dd09e9cc64d8bd7b85,
-    neuroconductor-devel/neurobase@43c1b6dbd9bc33afa2c58b7d570368e11b483b60,
-    neuroconductor-devel/fslr@c3ebfaff7f1c9da6a724cd0e4b60df059738e7f9,
-    neuroconductor-devel/extrantsr@56ac0402bc03b1b0800a36cfef1882c33607f6eb,
-    neuroconductor-devel/mimosa@b7d2ee54dbb414b89b3e7b849b0cca37c97f616a
-biocViews: 
+Suggests: covr, testthat
+biocViews:
+Remotes: 
+    neuroconductor-devel/ANTsRCore@a2c0c12cb676c2948f61bdcbf5b0d9a5acb5f33c,
+    neuroconductor-devel/oro.nifti@92ddf4aa741baaa693cfa02ade9f1bb252c2d95b,
+    neuroconductor-devel/neurobase@0c9ee8a926375d11cdcc64854d1ab7266abc5dd4,
+    neuroconductor-devel/fslr@074874a25633e86719e69d03973cb8247807ffe1,
+    neuroconductor-devel/extrantsr@987249a17df8601e6b3ad617b935e787fbfa57e4,
+    neuroconductor-devel/mimosa@e66521bc38865a78a93d3bcbf0ce8aff57afddf9
