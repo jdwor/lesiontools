@@ -2,27 +2,29 @@ Package: lesiontools
 Type: Package
 Title: Statistical and Computational Tools for Brain Lesion Analysis
 Version: 0.1.0
-Authors@R: person(given = "Jordan D.", family = "Dworkin",  
-  email = "jdwor@mail.med.upenn.edu", role = c("aut", "cre"))
+Authors@R: person(given = "Jordan D.", family = "Dworkin", email =
+        "jdwor@mail.med.upenn.edu", role = c("aut", "cre"))
 Maintainer: Jordan D. Dworkin <jdwor@mail.med.upenn.edu>
-Description: Functions for the analysis of brain images, specifically in the presence of white-matter lesions. The package includes tools for obtaining image gradients and hessian matrices, finding veins in the brain, counting distinct lesions, and detecting central vein sign.
+Description: Functions for the analysis of brain images, specifically
+        in the presence of white-matter lesions. The package includes
+        tools for obtaining image gradients and hessian matrices,
+        finding veins in the brain, counting distinct lesions, and
+        detecting central vein sign.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/jdwor/lesiontools
 RoxygenNote: 6.0.1
-Imports: 
-    pbmcapply,
-    pbapply,
-    parallel,
-    ANTsRCore,
-    extrantsr,
-    neurobase,
-    mimosa,
-    stats,
-    fslr,
-    oro.nifti
-Remotes:
-    neuroconductor/mimosa,
-    neuroconductor/ANTsRCore,
-    neuroconductor/extrantsr
+Imports: pbmcapply, pbapply, parallel, ANTsRCore, extrantsr, neurobase,
+        mimosa, stats, fslr, oro.nifti
+Suggests: 
+    covr,
+    testthat
+Remotes:  
+    neuroconductor-devel/ANTsRCore@f7fb598fed44aed83b3efe9ef260d77553a6e9b3,
+    neuroconductor-devel/oro.nifti@d39171057b2868b56d63d3dd09e9cc64d8bd7b85,
+    neuroconductor-devel/neurobase@43c1b6dbd9bc33afa2c58b7d570368e11b483b60,
+    neuroconductor-devel/fslr@c3ebfaff7f1c9da6a724cd0e4b60df059738e7f9,
+    neuroconductor-devel/extrantsr@56ac0402bc03b1b0800a36cfef1882c33607f6eb,
+    neuroconductor-devel/mimosa@b7d2ee54dbb414b89b3e7b849b0cca37c97f616a
+biocViews: 

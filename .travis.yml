@@ -1,18 +1,118 @@
-# R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
-
-language: R
+language: r
 sudo: false
 cache: packages
+warnings_are_errors: true
 use_bioc: true
 bioc_required: true
-
+cran: http://cran.rstudio.com
+dist: trusty
+addons:
+  apt:
+    packages:
+    - libfftw3-dev
+    - libgsl0-dev
+    - libgsl0ldbl
+os:
+- linux
+- osx
+osx_image: xcode9
 r:
-  - release
-  - devel
-
-r_check_args: --as-cran
-
-notifications:
-  email:
-    on_success: change
-    on_failure: change
+- 3.2
+- 3.3
+- 3.4
+- release
+- devel
+matrix:
+  allow_failures:
+  - r: devel
+env:
+  global:
+  - R_BUILD_ARGS="--no-manual"
+  - R_CHECK_ARGS="--as-cran --install-args=--build"
+  - RGL_USE_NULL=TRUE
+  - WARNINGS_ARE_ERRORS=1
+  - PROJECT_NAME=neuroconductor-devel
+  - DISPLAY=:99.0
+before_install:
+- ulimit -n 2048
+- export LD_LIBRARY_PATH=/usr/local/clang/lib:${LD_LIBRARY_PATH}
+- export PROJ_DIR=`basename $PWD`
+- echo "travis_wait*\.log$" >> .Rbuildignore
+- fname=travis_helpers.sh
+- wget -O ${fname} http://bit.ly/travis_helpers
+- cat ${fname}; source ${fname}; rm ${fname}
+- cat DESCRIPTION
+- start_xvfb ;
+- export rver=`r_version`;
+- export PACKAGE_NAME=`package_name`
+- export RCHECK_DIR=${PACKAGE_NAME}.Rcheck
+- remove_neuroc_packages
+- export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1
+- x=`export_clang_cxx`; eval ${x}
+- if [ "$TRAVIS_OS_NAME" = "osx" ]; then no_open_mp ; fi
+- echo "CC=${CC}, CXX=${CXX}, CXX1X=${CXX1X}"
+- echo "CXX1XSTD=${CXX1XSTD}, CXX11=${CXX11}"
+- clang_cxx
+- export cmake_version="3.11"
+- cmake --version
+- x=`cmake_setup`; echo "${x}"; eval ${x};
+- cmake --version
+- export ants_user=neuroconductor-devel
+- echo "Installing Missing Deps ITKR"
+- install_missing_remote_deps ${ants_user}/ITKR
+- gh_binary_install ${ants_user}/ITKR ;
+- if [[ "${PACKAGE_NAME}" == "ITKR" || "${PACKAGE_NAME}" == "ANTsRCore" || "${PACKAGE_NAME}"
+  == "ANTsR" ]]; then export R_BUILD_ARGS="${R_BUILD_ARGS} --no-build-vignettes "
+  ; fi
+- if [[ "${PACKAGE_NAME}" != "ITKR" ]]; then echo "Installing Missing Deps ANTsRCore"
+  ; install_missing_remote_deps ${ants_user}/ANTsRCore; gh_binary_install_passive
+  ${ants_user}/ANTsRCore ; fi
+- if [[ "${PACKAGE_NAME}" != "ANTsRCore" && "${PACKAGE_NAME}" != "ITKR" ]]; then echo
+  "Installing Missing Deps ANTsR" ; install_missing_remote_deps ${ants_user}/ANTsR
+  ; gh_binary_install_passive ${ants_user}/ANTsR ; fi
+- if [[ "${PACKAGE_NAME}" == "ANTsR" ]]; then export _R_CHECK_FORCE_SUGGESTS_=0 ;
+  fi
+- cat DESCRIPTION
+- install_remotes_no_dep
+- cat DESCRIPTION
+- echo $PATH ;
+- install_deps_no_suggests
+- install_python_requirements ;
+- travis_run_cache
+script:
+- x=`export_clang_cxx`; eval ${x}
+- travis_wait 100 R CMD build ${R_BUILD_ARGS} .
+- rm -f travis_wait*.log
+- PKG_TARBALL=$(ls -1t *.tar.gz | head -n 1)
+- ls
+- travis_wait 100 R CMD check ${R_CHECK_ARGS} "${PKG_TARBALL}"; CHECK_RET=$? ;
+- rm -f travis_wait*.log
+- if [[ $CHECK_RET -ne 0 ]]; then echo "R CMD check failed"; check_fail; dump_logs;
+  travis_terminate 1; fi
+- check_warnings
+after_success:
+- dump_logs
+after_failure:
+- dump_logs
+before_deploy:
+- if [ "$TRAVIS_OS_NAME" = "osx" ]; then PKG_TARBALL=$(ls -1t *.tgz | head -n 1);
+  PKG_TARBALL_WITH_R=`echo $PKG_TARBALL | sed 's/.tgz/_'"R${rver}"'.tgz/'` ; mv ${PKG_TARBALL}
+  ${PKG_TARBALL_WITH_R} ; echo "Built tarball is ${PKG_TARBALL_WITH_R}" ; fi
+- if [ "$TRAVIS_OS_NAME" = "linux" ]; then PKG_TARBALL=$(ls -1t *.tar.gz | head -n
+  1); PKG_TARBALL_WITH_R=`echo $PKG_TARBALL | sed 's/.tar.gz/_'"R${rver}"'.tar.gz/'`
+  ; mv ${PKG_TARBALL} ${PKG_TARBALL_WITH_R} ; echo "Built tarball is ${PKG_TARBALL_WITH_R}"
+  ; fi
+- if [ "$TRAVIS_OS_NAME" = "osx" ]; then rm -f *.tar.gz; fi
+deploy:
+  provider: releases
+  skip_cleanup: true
+  file_glob: true
+  file: "${PACKAGE_NAME}*.t*gz"
+  on:
+    tags: true
+  api-key:
+    secure: Sg499KOtXii67b11cswkCV8ifZW6DPt6eEAPsLPYLrKKfs/fDupG/jXEk96XnLIXTjjBNYE8sdo5cshDi6lAuoWEzqcZL/yjbrWoZmo9KclQUx8HV8lalE7TS8wdgERqLvuqbvT+/lE+yWu3LaoGTUx7yswUwDPv916/ZiILcCZmSP3Gc2fQMh7+FNU2gMhyaAS2s3qaPe8ASo7Nd1z5VJDEhG98DLcNCHWUjUU/o7+5KBmULAhKHpDtjExqJsKjCubzcD2pEGuyn2HMES/TdzXI0PehaD/72XkWQJJa8DYKn0LIuSRmvKmj7MJbO4uu8cxRPtdSVvjI5vcBEGUnMgr0VSymHTyv53AkGKOKNY3uGcLvq4Th4wO02CZZKMhhPENMpL1XdUD1sWab7CKSCbDKWoBOZqDAGOdsIMrrgOvq4O6ojLjBDrPzwE20WGWkswXEUhZFIfg5z+9QPc1+/+7ConB33KrD61YuuQtKQU1ajsFMa1xbsepGf/8mpcVCXSFzS/0jwcr4CjkHE1X+QrVsGAdLfAAQqxV52lM/ttWydT0E+g7xtw/OiM0Duz3ONXO7+5AkvlnV78+EpSVD6/qOeNUns+tB2xsi7vYWfVRVPSQTCwMLN8Oo7oJ4kyTOJnO685HZb0Vr+AS4qc7muyIi2MLGowy9bQgJ34Prhf8=
+after_deploy:
+- if [[ "${PACKAGE_NAME}" != "ANTsR" && "${PACKAGE_NAME}" != "ITKR" && "${PACKAGE_NAME}"
+  != "ANTsRCore" ]]; then if [[ "${TRAVIS_R_VERSION_STRING}" = "release" ]]; then
+  Rscript -e 'covr::coveralls(type = "all", quiet = FALSE)' ; fi fi
