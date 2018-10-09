@@ -5,7 +5,7 @@
 \title{Central Vein Detection}
 \usage{
 centralveins(epi, t1, flair, probmap = NULL, binmap = NULL, parallel = F,
-  cores = 2, skullstrip = F, biascorrect = F, c3d = F)
+  cores = 2, skullstripped = F, biascorrected = F, c3d = F)
 }
 \arguments{
 \item{epi}{a T2*-EPI volume of class \code{nifti}.}
