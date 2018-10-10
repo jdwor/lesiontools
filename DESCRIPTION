@@ -14,7 +14,7 @@ License: GPL-2
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/jdwor/lesiontools
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 Imports: pbmcapply, pbapply, parallel, ANTsRCore, extrantsr, neurobase,
         mimosa, stats, fslr, oro.nifti
 Suggests: covr, testthat
