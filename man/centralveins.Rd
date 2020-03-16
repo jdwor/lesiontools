@@ -4,8 +4,9 @@
 \alias{centralveins}
 \title{Central Vein Detection}
 \usage{
-centralveins(epi, t1, flair, probmap = NULL, binmap = NULL, parallel = F,
-  cores = 2, skullstrip = F, biascorrect = F, c3d = F)
+centralveins(epi, t1, flair, probmap = NULL, binmap = NULL,
+  parallel = F, cores = 2, skullstripped = F, biascorrected = F,
+  c3d = F)
 }
 \arguments{
 \item{epi}{a T2*-EPI volume of class \code{nifti}.}
@@ -28,9 +29,9 @@ is Linux or Unix (i.e. macOS), and should run the code in parallel.}
 \item{cores}{if parallel = TRUE, cores is an integer value that indicates how many cores
 the function should be run on.}
 
-\item{skullstrip}{a logical value reflecting whether or not the images have already been skull-stripped.}
+\item{skullstripped}{a logical value reflecting whether or not the images have already been skull-stripped.}
 
-\item{biascorrect}{a logical value reflecting whether or not the images have already been bias-corrected.}
+\item{biascorrected}{a logical value reflecting whether or not the images have already been bias-corrected.}
 
 \item{c3d}{a logical value reflecting whether or not the Convert3D imaging toolbox is installed.}
 }
