@@ -20,3 +20,6 @@ Imports: pbmcapply, pbapply, parallel, ANTsRCore, extrantsr, neurobase,
 Suggests: covr, testthat
 biocViews:
 Remotes: 
+    neuroconductor/ANTsRCore,
+    neuroconductor/extrantsr,
+    neuroconductor/mimosa
