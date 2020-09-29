@@ -35,7 +35,7 @@
 #'                          parallel = TRUE, cores = 4, c3d = T) }
 #' @export
 centralveins=function(epi,t1,flair,probmap=NULL,binmap=NULL,parallel=F,
-                      cores=2,skullstripped=F,biascorrected=F,c3d=F){
+                      cores=2,skullstripped=F,biascorrected=F,c3d=T){
   if(biascorrected==F){
     epi=bias_correct(epi,correction="N4",reorient=F)
     t1=bias_correct(t1,correction="N4",reorient=F)

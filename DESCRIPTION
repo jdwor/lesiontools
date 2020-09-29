@@ -1,11 +1,11 @@
 Package: lesiontools
 Type: Package
-Title: Statistical and Computational Tools for Brain Lesion Analysis
+Title: Statistical and Computational Tools for MS Lesion Analysis
 Version: 0.1.0
 Authors@R: person(given = "Jordan D.", family = "Dworkin", email =
         "jdwor@mail.med.upenn.edu", role = c("aut", "cre"))
 Maintainer: Jordan D. Dworkin <jdwor@mail.med.upenn.edu>
-Description: Functions for the analysis of brain images, specifically
+Description: Functions for the analysis of MS brain images, specifically
         in the presence of white-matter lesions. The package includes
         tools for obtaining image gradients and hessian matrices,
         finding veins in the brain, counting distinct lesions, and
@@ -20,9 +20,3 @@ Imports: pbmcapply, pbapply, parallel, ANTsRCore, extrantsr, neurobase,
 Suggests: covr, testthat
 biocViews:
 Remotes: 
-    neuroconductor-devel/ANTsRCore@a2c0c12cb676c2948f61bdcbf5b0d9a5acb5f33c,
-    neuroconductor-devel/oro.nifti@92ddf4aa741baaa693cfa02ade9f1bb252c2d95b,
-    neuroconductor-devel/neurobase@0c9ee8a926375d11cdcc64854d1ab7266abc5dd4,
-    neuroconductor-devel/fslr@074874a25633e86719e69d03973cb8247807ffe1,
-    neuroconductor-devel/extrantsr@987249a17df8601e6b3ad617b935e787fbfa57e4,
-    neuroconductor-devel/mimosa@e66521bc38865a78a93d3bcbf0ce8aff57afddf9
