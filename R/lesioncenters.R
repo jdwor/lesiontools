@@ -24,10 +24,17 @@
 lesioncenters=function(probmap,binmap,c3d=T,minCenterSize=10,radius=1,parallel=F,cores=2){
   scale=ceiling((1/mean(probmap@pixdim[2:4]))^3)
   if(c3d==T){
+    if(file.exists("/Applications/ITK-SNAP.app/Contents/bin/c3d")){
+      c3d_path="/Applications/ITK-SNAP.app/Contents/bin/c3d"
+    }else{
+      stop("Cannot find path to Convert3D\n
+           If it is already installed via ITK-SNAP, please specify the correct path in the function call.\n
+           If not, please download the software at http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.SNAP3.")
+    }
     tempprob=tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".nii.gz")
     writenii(probmap,tempprob)
     tempeigs=tempfile(pattern = "file", tmpdir = tempdir())
-    system(paste0("c3d ",tempprob," -hesseig ",scale," -oo ",paste0(tempeigs,"%02d.nii.gz")))
+    system(paste0(c3d_path," ",tempprob," -hesseig ",scale," -oo ",paste0(tempeigs,"%02d.nii.gz")))
 
     phes1=readnii(paste0(tempeigs,"00.nii.gz"))
     phes2=readnii(paste0(tempeigs,"01.nii.gz"))
