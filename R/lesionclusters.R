@@ -19,8 +19,8 @@
 #' @importFrom plyr mapvalues
 #' @importFrom mclust Mclust
 #'
-#' @return A list containing lesionclusters_nn (a nifti file with labeled lesion clusters based on center detection and nearest neighbors), lesionclusters_gmm (a nifti file with labeled lesion clusters based on gaussian mixture modeling),
-#' and lesionclusters_cc (a nifti file with labeled lesion clusters based on naive connected components)
+#' @return A list containing lesionclusters.nn (a nifti file with labeled lesion clusters based on center detection and nearest neighbors), lesionclusters.gmm (a nifti file with labeled lesion clusters based on gaussian mixture modeling),
+#' and lesionclusters.cc (a nifti file with labeled lesion clusters based on naive connected components)
 #' @examples \dontrun{
 #' library(neurobase)
 #' lesion.probs <- readnii('path/to/probabilitymap')
@@ -217,6 +217,6 @@ lesionclusters=function(probmap,binmap,smooth=1.2,minCenterSize=10,parallel=F,co
   gmmmap=clusmap
   gmmmap[clusassignments[,1:3]]=clusassignments[,4]
 
-  return(list(lesionclusters_nn=nnmap,lesionclusters_gmm=gmmmap,
-              lesionclusters_cc=clusmap))
+  return(list(lesionclusters.nn=nnmap,lesionclusters.gmm=gmmmap,
+              lesionclusters.cc=clusmap))
 }
