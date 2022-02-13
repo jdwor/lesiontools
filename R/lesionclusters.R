@@ -27,7 +27,7 @@
 #' centers <- lesioncenters(probmap = lesion.probs, binmap = lesion.probs>0.30,
 #'                          parallel = TRUE, cores = 4) }
 #' @export
-lesionclusters=function(probmap,binmap,smooth=1.2,minCenterSize=10,parallel=F,cores=2,c3d_path=NULL){
+lesionclusters=function(probmap,binmap,smooth=1.2,minCenterSize=10,gmm=T,parallel=F,cores=2,c3d_path=NULL){
   if(is.null(c3d_path)){
     if(file.exists("/Applications/ITK-SNAP.app/Contents/bin/c3d")){
       c3d_path="/Applications/ITK-SNAP.app/Contents/bin/c3d"
@@ -140,83 +140,88 @@ lesionclusters=function(probmap,binmap,smooth=1.2,minCenterSize=10,parallel=F,co
   nnmap[clusassignments[,1:3]]=clusassignments[,4]
 
 
-  ####################################
-  ## Do gaussian mixture clustering ##
-  ####################################
+  if(gmm==T){
+    ####################################
+    ## Do gaussian mixture clustering ##
+    ####################################
 
-  gmmOneLesion=function(x,clusmap,probmap,centers){
-    coords=which(clusmap==x,arr.ind=T)
-    assigndf=coords
-    data=cbind(coords,probmap[coords]-min(probmap[coords]))
-    data=as.data.frame(data)
-    colnames(data)=c("x","y","z","p")
-    centvals=unique(centers[coords])
-    if(length(centvals)<=2){
-      centvals[centvals==0]=x
-      lesnum=max(centvals)
-      assigndf=cbind(assigndf,lesnum)
-    }else{
-      nvox=nrow(coords); k=length(centvals)-1
-      newdat=sample(1:nrow(data),size=nvox*10,replace=T,
-                    prob=(data$p)/sum(data$p))
-      newdat=data[newdat,1:3]
-      newdat$x=newdat$x+runif(nrow(newdat),-.5,.5)
-      newdat$y=newdat$y+runif(nrow(newdat),-.5,.5)
-      newdat$z=newdat$z+runif(nrow(newdat),-.5,.5)
+    gmmOneLesion=function(x,clusmap,probmap,centers){
+      coords=which(clusmap==x,arr.ind=T)
+      assigndf=coords
+      data=cbind(coords,probmap[coords]-min(probmap[coords]))
+      data=as.data.frame(data)
+      colnames(data)=c("x","y","z","p")
+      centvals=unique(centers[coords])
+      if(length(centvals)<=2){
+        centvals[centvals==0]=x
+        lesnum=max(centvals)
+        assigndf=cbind(assigndf,lesnum)
+      }else{
+        nvox=nrow(coords); k=length(centvals)-1
+        newdat=sample(1:nrow(data),size=nvox*10,replace=T,
+                      prob=(data$p)/sum(data$p))
+        newdat=data[newdat,1:3]
+        newdat$x=newdat$x+runif(nrow(newdat),-.5,.5)
+        newdat$y=newdat$y+runif(nrow(newdat),-.5,.5)
+        newdat$z=newdat$z+runif(nrow(newdat),-.5,.5)
 
-      gmmauto <- NULL
-      attempt <- 1
-      while(is.null(gmmauto) && attempt <= 5) {
-        attempt <- attempt + 1
-        mink=max(1,round(k-.5*k,0))
-        maxk=round(k+.5*k,0)
-        gmmauto=try(
-          Mclust(newdat,G=mink:maxk,verbose=F)
-        )
+        gmmauto <- NULL
+        attempt <- 1
+        while(is.null(gmmauto) && attempt <= 5) {
+          attempt <- attempt + 1
+          mink=max(1,round(k-.5*k,0))
+          maxk=round(k+.5*k,0)
+          gmmauto=try(
+            Mclust(newdat,G=mink:maxk,verbose=F)
+          )
+        }
+
+        mvn.pdf.i <- function(xi, mu, Sigma){
+          1/sqrt( (2*pi)^length(xi) * det(Sigma) ) *
+            exp(-(1/2) * t(xi - mu) %*% mvnorm.cov.inv(Sigma)
+                %*% (xi - mu)  )
+        }
+        mvn.pdf <- function(X, mu, Sigma){
+          apply(X, 1, function(xi) mvn.pdf.i(as.numeric(xi), mu, Sigma))
+        }
+        mvnorm.cov.inv <- function(Sigma) {
+          # Eigendecomposition of covariance matrix
+          E <- eigen(Sigma)
+          Lambda.inv <- diag(E$values^-1)   # diagonal matrix
+          Q <- E$vectors
+          return(Q %*% Lambda.inv %*% t(Q))
+        }
+
+        mu=t(gmmauto$parameters$mean)
+        cov=gmmauto$parameters$variance$sigma
+        w=gmmauto$parameters$pro; k=length(w)
+        mvn.c <- sapply(1:k, function(c) mvn.pdf(data[,1:3], mu[c,], cov[,, c]))
+        gmm.softcluster <- t(w*t(mvn.c)) / rowSums(t(w*t(mvn.c)))
+        gmm.cluster = apply(gmm.softcluster, 1, which.max)
+
+        assigndf=cbind(assigndf,gmm.cluster)
+
       }
-
-      mvn.pdf.i <- function(xi, mu, Sigma){
-        1/sqrt( (2*pi)^length(xi) * det(Sigma) ) *
-          exp(-(1/2) * t(xi - mu) %*% mvnorm.cov.inv(Sigma)
-              %*% (xi - mu)  )
-      }
-      mvn.pdf <- function(X, mu, Sigma){
-        apply(X, 1, function(xi) mvn.pdf.i(as.numeric(xi), mu, Sigma))
-      }
-      mvnorm.cov.inv <- function(Sigma) {
-        # Eigendecomposition of covariance matrix
-        E <- eigen(Sigma)
-        Lambda.inv <- diag(E$values^-1)   # diagonal matrix
-        Q <- E$vectors
-        return(Q %*% Lambda.inv %*% t(Q))
-      }
-
-      mu=t(gmmauto$parameters$mean)
-      cov=gmmauto$parameters$variance$sigma
-      w=gmmauto$parameters$pro; k=length(w)
-      mvn.c <- sapply(1:k, function(c) mvn.pdf(data[,1:3], mu[c,], cov[,, c]))
-      gmm.softcluster <- t(w*t(mvn.c)) / rowSums(t(w*t(mvn.c)))
-      gmm.cluster = apply(gmm.softcluster, 1, which.max)
-
-      assigndf=cbind(assigndf,gmm.cluster)
-
+      return(assigndf)
     }
-    return(assigndf)
-  }
-  if(parallel==TRUE){
-    clusassignments=do.call(rbind,mclapply(uniqueclusts,gmmOneLesion,clusmap,
-                                           probmap,centers,mc.cores=cores))
-  }else{
-    clusassignments=do.call(rbind,lapply(uniqueclusts,gmmOneLesion,clusmap,
-                                         probmap,centers))
-  }
-  uniquelesions=clusassignments[,4] %>% as.vector() %>%
-    table() %>% names() %>% as.numeric()
-  clusassignments[,4]=mapvalues(clusassignments[,4],from=uniquelesions,
-                                to=1:length(uniquelesions))
-  gmmmap=clusmap
-  gmmmap[clusassignments[,1:3]]=clusassignments[,4]
+    if(parallel==TRUE){
+      clusassignments=do.call(rbind,mclapply(uniqueclusts,gmmOneLesion,clusmap,
+                                             probmap,centers,mc.cores=cores))
+    }else{
+      clusassignments=do.call(rbind,lapply(uniqueclusts,gmmOneLesion,clusmap,
+                                           probmap,centers))
+    }
+    uniquelesions=clusassignments[,4] %>% as.vector() %>%
+      table() %>% names() %>% as.numeric()
+    clusassignments[,4]=mapvalues(clusassignments[,4],from=uniquelesions,
+                                  to=1:length(uniquelesions))
+    gmmmap=clusmap
+    gmmmap[clusassignments[,1:3]]=clusassignments[,4]
 
-  return(list(lesionclusters.nn=nnmap,lesionclusters.gmm=gmmmap,
-              lesionclusters.cc=clusmap))
+    return(list(lesionclusters.nn=nnmap,lesionclusters.gmm=gmmmap,
+                lesionclusters.cc=clusmap))
+  }else{
+    return(list(lesionclusters.nn=nnmap,lesionclusters.cc=clusmap))
+  }
+
 }
