@@ -15,7 +15,7 @@
 #' @importFrom extrantsr ants2oro oro2ants
 #' @importFrom neurobase readnii writenii
 #' @importFrom parallel mclapply
-#' 
+#'
 #' @return A list containing lesioncenters (a nifti file with labeled lesion centers) and lesioncount (an integer value representing the number of distinct lesions)
 #' @examples \dontrun{
 #' library(neurobase)
@@ -34,14 +34,14 @@ lesioncenters_c3d=function(probmap,binmap,smooth=1.2,minCenterSize=10,parallel=F
            If not, please download the software at http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.SNAP3.")
     }
   }
-  
+
   scale=ceiling((1/mean(probmap@pixdim[2:4]))^3)
-  
+
   tempprob=tempfile(pattern = "file", tmpdir = tempdir(), fileext = ".nii.gz")
   writenii(probmap,tempprob)
   tempeigs=tempfile(pattern = "file", tmpdir = tempdir())
   system(paste0(c3d_path," ",tempprob," -smooth ", smooth, "vox -grad -oo ",paste0(tempeigs,"%02d.nii.gz")))
-  
+
   tempx=tempfile(pattern = "file", tmpdir = tempdir())
   system(paste0(c3d_path," ",paste0(tempeigs,"00.nii.gz")," -grad -oo ",
                 paste0(tempx,"%02d.nii.gz")))
@@ -51,7 +51,7 @@ lesioncenters_c3d=function(probmap,binmap,smooth=1.2,minCenterSize=10,parallel=F
   tempz=tempfile(pattern = "file", tmpdir = tempdir())
   system(paste0(c3d_path," ",paste0(tempeigs,"02.nii.gz")," -grad -oo ",
                 paste0(tempz,"%02d.nii.gz")))
-  
+
   gxx=readnii(paste0(tempx,"00.nii.gz"))
   gxy=readnii(paste0(tempx,"01.nii.gz"))
   gxz=readnii(paste0(tempx,"02.nii.gz"))
@@ -61,23 +61,23 @@ lesioncenters_c3d=function(probmap,binmap,smooth=1.2,minCenterSize=10,parallel=F
   gzx=readnii(paste0(tempz,"00.nii.gz"))
   gzy=readnii(paste0(tempz,"01.nii.gz"))
   gzz=readnii(paste0(tempz,"02.nii.gz"))
-  
+
   mask=binmap
   bigmat=cbind(as.vector(gxx[mask==1]),as.vector(gxy[mask==1]),as.vector(gxz[mask==1]),
                as.vector(gyx[mask==1]),as.vector(gyy[mask==1]),as.vector(gyz[mask==1]),
                as.vector(gzx[mask==1]),as.vector(gzy[mask==1]),as.vector(gzz[mask==1]))
   rm(gxx,gxy,gxz,gyx,gyy,gyz,gzx,gzy,gzz)
-  
+
   biglist=split(bigmat,row(bigmat))
   biglist=lapply(biglist,matrix,nrow=3,byrow=T)
   rm(bigmat)
-  
+
   getevals=function(matrix){
     thiseig=eigen(matrix)$values
     sort=order(abs(thiseig))
     return(thiseig[sort])
   }
-  
+
   if(parallel==TRUE){
     result=matrix(unlist(mclapply(biglist,getevals,mc.cores=cores)),
                   ncol=3,byrow=T)
@@ -90,13 +90,13 @@ lesioncenters_c3d=function(probmap,binmap,smooth=1.2,minCenterSize=10,parallel=F
   phes2[mask==1]<-result[,2]
   phes3=mask
   phes3[mask==1]<-result[,3]
-  
-  clusmap=ants2oro(labelClusters(oro2ants(binmap),minClusterSize=20*scale))
-  
+
+  clusmap=ants2oro(labelClusters(oro2ants(binmap),minClusterSize=10*scale))
+
   les=clusmap
   les[les!=0]<-1
   les[phes1>0 | phes2>0 | phes3>0]<-0
   les=ants2oro(labelClusters(oro2ants(les),minClusterSize=minCenterSize*scale))
-  
+
   return(list(lesioncenters=les,lesioncount=max(les)))
 }
