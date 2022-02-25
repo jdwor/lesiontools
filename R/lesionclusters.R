@@ -19,15 +19,17 @@
 #' @importFrom plyr mapvalues
 #' @importFrom mclust Mclust
 #'
-#' @return A list containing lesionclusters.nn (a nifti file with labeled lesion clusters based on center detection and nearest neighbors), lesionclusters.gmm (a nifti file with labeled lesion clusters based on gaussian mixture modeling),
+#' @return A list containing lesioncenters (a nifti file with labeled lesion centers),
+#' lesionclusters.nn (a nifti file with labeled lesion clusters based on center detection and nearest neighbor assignment),
+#' lesionclusters.gmm (a nifti file with labeled lesion clusters based on gaussian mixture modeling; if gmm=T),
 #' and lesionclusters.cc (a nifti file with labeled lesion clusters based on naive connected components)
 #' @examples \dontrun{
 #' library(neurobase)
 #' lesion.probs <- readnii('path/to/probabilitymap')
-#' centers <- lesioncenters(probmap = lesion.probs, binmap = lesion.probs>0.30,
-#'                          parallel = TRUE, cores = 4) }
+#' clusters <- lesionclusters(probmap = lesion.probs, binmap = lesion.probs>0.30,
+#'                            parallel = TRUE, cores = 4) }
 #' @export
-lesionclusters=function(probmap,binmap,smooth=1.2,minCenterSize=10,gmm=T,parallel=F,cores=2,c3d_path=NULL){
+lesionclusters=function(probmap,binmap,smooth=1.2,minCenterSize=10,gmm=F,parallel=F,cores=2,c3d_path=NULL){
   if(is.null(c3d_path)){
     if(file.exists("/Applications/ITK-SNAP.app/Contents/bin/c3d")){
       c3d_path="/Applications/ITK-SNAP.app/Contents/bin/c3d"
@@ -139,6 +141,9 @@ lesionclusters=function(probmap,binmap,smooth=1.2,minCenterSize=10,gmm=T,paralle
   nnmap=clusmap
   nnmap[clusassignments[,1:3]]=clusassignments[,4]
 
+  centers[centers!=0]=mapvalues(centers[centers!=0],from=uniquelesions,
+                                to=1:length(uniquelesions))
+
 
   if(gmm==T){
     ####################################
@@ -158,8 +163,10 @@ lesionclusters=function(probmap,binmap,smooth=1.2,minCenterSize=10,gmm=T,paralle
         assigndf=cbind(assigndf,lesnum)
       }else{
         nvox=nrow(coords); k=length(centvals)-1
-        newdat=sample(1:nrow(data),size=nvox*10,replace=T,
-                      prob=(data$p)/sum(data$p))
+        reprow=round(data$p*100,0)
+        newdat=rep(1:nrow(data),reprow)
+        #newdat=sample(1:nrow(data),size=nvox*10,replace=T,
+        #              prob=(data$p)/sum(data$p))
         newdat=data[newdat,1:3]
         newdat$x=newdat$x+runif(nrow(newdat),-.5,.5)
         newdat$y=newdat$y+runif(nrow(newdat),-.5,.5)
@@ -172,7 +179,7 @@ lesionclusters=function(probmap,binmap,smooth=1.2,minCenterSize=10,gmm=T,paralle
           mink=max(1,round(k-.5*k,0))
           maxk=round(k+.5*k,0)
           gmmauto=try(
-            Mclust(newdat,G=mink:maxk,verbose=F)
+            Mclust(newdat,G=mink:maxk,nodelNames="VVV",verbose=F)
           )
         }
 
@@ -218,10 +225,11 @@ lesionclusters=function(probmap,binmap,smooth=1.2,minCenterSize=10,gmm=T,paralle
     gmmmap=clusmap
     gmmmap[clusassignments[,1:3]]=clusassignments[,4]
 
-    return(list(lesionclusters.nn=nnmap,lesionclusters.gmm=gmmmap,
-                lesionclusters.cc=clusmap))
+    return(list(lesioncenters=centers, lesionclusters.nn=nnmap,
+                lesionclusters.gmm=gmmmap, lesionclusters.cc=clusmap))
   }else{
-    return(list(lesionclusters.nn=nnmap,lesionclusters.cc=clusmap))
+    return(list(lesioncenters=centers, lesionclusters.nn=nnmap,
+                lesionclusters.cc=clusmap))
   }
 
 }
