@@ -142,7 +142,8 @@ lesionclusters=function(probmap,binmap,smooth=1.2,minCenterSize=10,gmm=F,paralle
   nnmap[clusassignments[,1:3]]=clusassignments[,4]
 
   centers[centers!=0]=mapvalues(centers[centers!=0],from=uniquelesions,
-                                to=1:length(uniquelesions))
+                                to=1:length(uniquelesions),
+                                warn_missing=F)
 
 
   if(gmm==T){
