@@ -29,7 +29,8 @@
 #' clusters <- lesionclusters(probmap = lesion.probs, binmap = lesion.probs>0.30,
 #'                            parallel = TRUE, cores = 4) }
 #' @export
-lesionclusters=function(probmap,binmap,smooth=1.2,minCenterSize=10,gmm=F,parallel=F,cores=2,c3d_path=NULL){
+lesionclusters=function(probmap,binmap,smooth=1.2,gmm=F,minCenterSize=10,
+                        minLesionSize=1,parallel=F,cores=2,c3d_path=NULL){
   if(is.null(c3d_path)){
     if(file.exists("/Applications/ITK-SNAP.app/Contents/bin/c3d")){
       c3d_path="/Applications/ITK-SNAP.app/Contents/bin/c3d"
@@ -46,7 +47,7 @@ lesionclusters=function(probmap,binmap,smooth=1.2,minCenterSize=10,gmm=F,paralle
   ##################################
 
   scale=ceiling((1/mean(probmap@pixdim[2:4]))^3)
-  clusmap=ants2oro(labelClusters(oro2ants(binmap),minClusterSize=10*scale))
+  clusmap=ants2oro(labelClusters(oro2ants(binmap),minClusterSize=minLesionSize*scale))
 
   #########################
   ## Do center detection ##
