@@ -52,7 +52,7 @@ centralveins=function(epi,t1,flair,probmap=NULL,binmap=NULL,parallel=F,
     flair_ss[t1_ss==0]<-0
   }
 
-  frangi=frangi(image=epi_ss,mask=epi_ss!=0,parallel=parallel,cores=cores,c3d)
+  frangi=frangi(image=epi_ss,mask=epi_ss!=0,parallel=parallel,cores=cores,c3d = c3d)
   frangi[frangi<0]<-0
 
   regs=labelreg(epi,t1,frangi)
